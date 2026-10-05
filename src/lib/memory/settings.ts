@@ -235,3 +235,29 @@ export async function getMemorySettings(): Promise<MemorySettings> {
 export function invalidateMemorySettingsCache(): void {
   cachedMemorySettings = null;
 }
+
+/**
+ * Which backend-selection keys are explicitly persisted.
+ *
+ * `normalizeMemorySettings` collapses "absent" and "equals the default" into the
+ * same value, so a caller that must distinguish an operator's explicit choice
+ * from the built-in default (an environment-driven deployment, for example) has
+ * to read the raw rows. Only the two selection keys are inspected.
+ */
+export async function getPersistedBackendSelection(): Promise<{
+  primary?: string;
+  fallbacks?: string[];
+}> {
+  const settings = (await getSettings()) as Record<string, unknown>;
+
+  const primary =
+    typeof settings.memoryPrimaryBackend === "string" && settings.memoryPrimaryBackend.trim() !== ""
+      ? settings.memoryPrimaryBackend
+      : undefined;
+
+  const fallbacks = Array.isArray(settings.memoryFallbackBackends)
+    ? settings.memoryFallbackBackends.filter((v): v is string => typeof v === "string")
+    : undefined;
+
+  return { primary, fallbacks };
+}

@@ -121,7 +121,25 @@ class MemoryManager {
 
   async create(input: CreateMemoryInput): Promise<Memory> {
     const primary = this.getPrimaryBackend();
-    return primary.create(input);
+    try {
+      return await primary.create(input);
+    } catch (primaryError) {
+      // Fallback parity with search(): a primary outage must not lose the write
+      // when a fallback is configured. With no fallbacks configured (the
+      // default) behaviour is unchanged — the primary error propagates as-is.
+      const fallbacks = this.getFallbackBackends();
+      if (fallbacks.length === 0) throw primaryError;
+
+      log.warn("Primary create failed, trying fallbacks", { error: String(primaryError) });
+      for (const backend of fallbacks) {
+        try {
+          return await backend.create(input);
+        } catch (fallbackError) {
+          log.warn(`Fallback ${backend.id} create failed`, { error: String(fallbackError) });
+        }
+      }
+      throw primaryError;
+    }
   }
 
   async get(id: string): Promise<Memory | null> {
@@ -167,8 +185,26 @@ class MemoryManager {
   async list(
     filter: MemoryFilter
   ): Promise<{ data: Memory[]; total: number; byType: Record<string, number> }> {
-    // Only primary handles list (fallbacks are for get/search redundancy)
-    return this.getPrimaryBackend().list(filter);
+    const primary = this.getPrimaryBackend();
+    try {
+      return await primary.list(filter);
+    } catch (primaryError) {
+      // Same fallback contract as get()/search(): listing degrades to a
+      // fallback backend instead of returning 500 when the primary is down.
+      // No fallbacks configured => behaviour unchanged.
+      const fallbacks = this.getFallbackBackends();
+      if (fallbacks.length === 0) throw primaryError;
+
+      log.warn("Primary list failed, trying fallbacks", { error: String(primaryError) });
+      for (const backend of fallbacks) {
+        try {
+          return await backend.list(filter);
+        } catch (fallbackError) {
+          log.warn(`Fallback ${backend.id} list failed`, { error: String(fallbackError) });
+        }
+      }
+      throw primaryError;
+    }
   }
 
   // ─── Search with fallback ───

@@ -7,6 +7,7 @@ import MemoryEngineStatus from "../MemoryEngineStatus";
 import EmbeddingSourceSelector from "../EmbeddingSourceSelector";
 import QdrantConfigCard from "../QdrantConfigCard";
 import RerankConfigCard from "../RerankConfigCard";
+import BackendConfigCard from "../BackendConfigCard";
 import { useEngineStatus } from "../../hooks/useEngineStatus";
 import { useMemorySettings } from "../../hooks/useMemorySettings";
 import type { EmbeddingProviderListing } from "@/lib/memory/embedding/types";
@@ -116,6 +117,11 @@ export default function EngineTab() {
           )}
         </div>
       </Card>
+
+      {/* MemoryBackend selection + Hindsight connection/health */}
+      {settings && (
+        <BackendConfigCard settings={settings} onSave={handleSaveSettings} saving={saving} />
+      )}
 
       {/* Embedding source selector */}
       {settings && (

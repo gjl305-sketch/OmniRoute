@@ -1,0 +1,74 @@
+# OmniRoute on Fly.io — long-term memory topology.
+#
+# Deploy from the repository root (the build context must be the repo root):
+#   fly deploy --config deploy/fly/omniroute.fly.toml
+#
+# Runbook, volumes, secret names and the configuration-migration procedure:
+#   deploy/fly/README.md
+#
+# Deliberately NOT copied from the upstream root fly.toml:
+#   [processes] app = 'node run-standalone.mjs'
+# That path does not exist in the image. assembleStandalone.mjs maps the entry
+# point to dev/run-standalone.mjs and Dockerfile:292 is `CMD ["node",
+# "dev/run-standalone.mjs"]`, so this manifest lets the image CMD apply.
+
+app = "omniroute-memory"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+  # runner-base is the lean HTTP + dashboard image upstream publishes
+  # (docker-compose.yml:103, docker-publish.yml:192). No browser sidecar needed.
+  target = "runner-base"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "20128"
+  HOSTNAME = "0.0.0.0"
+  # Must equal the volume mount below. A mismatch writes the SQLite database and
+  # the generated secrets into the ephemeral image layer (FLY_IO_DEPLOYMENT_GUIDE.md:191).
+  DATA_DIR = "/data"
+  OMNIROUTE_MEMORY_MB = "1024"
+  NODE_OPTIONS = "--max-old-space-size=1024"
+  # A Fly app is reachable from the public internet by design (force_https below).
+  REQUIRE_API_KEY = "true"
+
+  # ── Hindsight durable memory backend ───────────────────────────────────────
+  # Reached over Fly 6PN private networking; Hindsight has no public service.
+  HINDSIGHT_API_URL = "http://omniroute-hindsight.internal:8888"
+  HINDSIGHT_BANK_ID = "omniroute"
+  # Hindsight is the durable primary; the always-registered SQLite backend stays
+  # as the fallback so a Hindsight outage degrades instead of failing.
+  OMNIROUTE_MEMORY_PRIMARY_BACKEND = "hindsight"
+  OMNIROUTE_MEMORY_FALLBACK_BACKENDS = "sqlite"
+
+[[mounts]]
+  source = "omniroute_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 20128
+  force_https = true
+  # Memory injection sits on the request path, so keep one machine warm instead
+  # of paying a cold start on the first memory-bearing request.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # One writer per SQLite file: never scale this process above one machine
+  # (docs/reference/ENVIRONMENT.md:232, "never replicas>1 on one SQLite file").
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "10s"
+  grace_period = "2m"
+  method = "GET"
+  path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1024mb"

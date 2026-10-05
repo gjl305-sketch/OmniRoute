@@ -9,6 +9,7 @@ import { getMemorySettings } from "./settings";
 import { recordMemoryAccess } from "./store";
 import { stats as embeddingCacheStats } from "./embedding/cache";
 import { getQdrantConfig, checkQdrantHealth, searchSemanticMemory } from "./qdrant";
+import { retrieveViaPrimaryBackend } from "./durable";
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
 import { supportsFts5 } from "../db/migrationRunner";
 import type { SqliteAdapter } from "../db/adapters/types";
@@ -289,6 +290,20 @@ async function retrieveMemoriesInternal(
 
   const maxTokens = Math.min(Math.max(normalizedConfig.maxTokens, 1), 8000);
   const strategy = normalizedConfig.retrievalStrategy;
+
+  // Durable-memory seam: when a backend other than SQLite is primary, durable
+  // memories live there and must be read back from there. Returns null (and this
+  // falls through to the local hybrid engine) for the default SQLite primary, for
+  // recency-only requests, and whenever the remote backend fails.
+  const durable = await retrieveViaPrimaryBackend(apiKeyId, {
+    query: config.query,
+    maxTokens,
+    strategy,
+  });
+  if (durable !== null) {
+    log.info("memory.retrieval.durable", { apiKeyId, results: durable.length });
+    return durable;
+  }
 
   const db = getDbInstance();
   // Plan 21 FAIL #2 fix: include "qdrant" in the tier union so that the

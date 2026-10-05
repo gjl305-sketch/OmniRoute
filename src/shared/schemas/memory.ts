@@ -176,3 +176,46 @@ export const RetrievePreviewResultSchema = z.object({
 export type MemorySettingsExtended = z.infer<typeof MemorySettingsExtendedSchema>;
 export type MemoryEngineStatus = z.infer<typeof MemoryEngineStatusSchema>;
 export type RetrievePreviewResult = z.infer<typeof RetrievePreviewResultSchema>;
+
+/**
+ * GET /api/memory/backends — effective MemoryBackend registry state.
+ *
+ * `config` is a deliberately safe summary: it never carries credential values,
+ * only whether one is present.
+ */
+export const MemoryBackendInfoSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  isPrimary: z.boolean(),
+  isFallback: z.boolean(),
+  health: z.object({
+    ok: z.boolean(),
+    latencyMs: z.number(),
+    error: z.string().nullable(),
+  }),
+  config: z
+    .object({
+      baseUrl: z.string(),
+      bankId: z.string().nullable(),
+      hasApiKey: z.boolean(),
+    })
+    .nullable(),
+});
+
+export const MemoryBackendsResponseSchema = z.object({
+  primary: z.string(),
+  fallbacks: z.array(z.string()),
+  backends: z.array(MemoryBackendInfoSchema),
+});
+
+/** POST /api/memory/backends — exercise the selected backend directly. */
+export const MemoryBackendActionSchema = z
+  .object({
+    action: z.enum(["recall", "reflect"]),
+    query: z.string().min(1).max(4000),
+    limit: z.number().int().positive().max(50).default(10),
+  })
+  .strict();
+
+export type MemoryBackendInfo = z.infer<typeof MemoryBackendInfoSchema>;
+export type MemoryBackendsResponse = z.infer<typeof MemoryBackendsResponseSchema>;

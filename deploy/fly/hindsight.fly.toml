@@ -1,0 +1,78 @@
+# Hindsight on Fly.io — durable long-term memory for OmniRoute.
+#
+# Hindsight is deployed from a pinned upstream image; this repository does not
+# build it. Deploy with:
+#   fly deploy --config deploy/fly/hindsight.fly.toml
+#
+# The image and the LLM chain are pinned in this file on purpose: memory written
+# into a Hindsight bank outlives deployments, so the writer version must be
+# reproducible and the schema must advance only through Hindsight's own
+# migrations.
+#
+# NO [http_service] BY DESIGN. Hindsight has no public surface; OmniRoute reaches
+# it at http://omniroute-hindsight.internal:8888 over Fly 6PN private networking.
+
+app = "omniroute-hindsight"
+primary_region = "ord"
+
+[build]
+  # Pinned, not `latest`: the running version must be auditable and upgradeable
+  # deliberately. All endpoints the OmniRoute adapter uses were verified present
+  # in this release (GET /health, POST .../memories, POST .../memories/recall,
+  # GET .../memories/list, GET/PATCH .../memories/{id}, GET|DELETE .../documents,
+  # POST .../reflect).
+  image = "ghcr.io/vectorize-io/hindsight:0.8.6"
+
+[env]
+  HINDSIGHT_API_HOST = "0.0.0.0"
+  HINDSIGHT_API_PORT = "8888"
+  HINDSIGHT_ENABLE_API = "true"
+  # The bundled control plane is kept for inspecting stored memory. It listens on
+  # 9999 and is likewise private — no Fly service is published for it.
+  HINDSIGHT_ENABLE_CP = "true"
+  HINDSIGHT_API_LOG_LEVEL = "info"
+  # First boot downloads the embedded PostgreSQL distribution and loads the local
+  # embedding/reranker models; the entrypoint waits this long before giving up.
+  HINDSIGHT_API_STARTUP_WAIT_SECONDS = "900"
+
+  # Stable worker id — the entrypoint warns loudly when it falls back to the
+  # container hostname, because that changes on every restart and can strand
+  # claimed async operations.
+  HINDSIGHT_API_WORKER_ID = "hindsight-omniroute"
+  HINDSIGHT_API_WORKER_MAX_SLOTS = "6"
+
+  # ── LLM chain (retain/reflect/consolidation) ───────────────────────────────
+  # Provider + API key come from Fly secrets (HINDSIGHT_API_LLM_API_KEY and the
+  # per-member keys below). Model ids are not secret and are pinned here.
+  HINDSIGHT_API_LLM_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_MODEL = "deepseek/deepseek-v4-flash"
+  HINDSIGHT_API_LLM_STRATEGY = '{"mode":"failover"}'
+  HINDSIGHT_API_LLM_STRICT_SCHEMA = "true"
+  HINDSIGHT_API_LLM_EXTRA_BODY = '{"max_tokens":2000}'
+  HINDSIGHT_API_LLM_MAX_CONCURRENT = "8"
+  HINDSIGHT_API_LLM_MAX_RETRIES = "2"
+  HINDSIGHT_API_LLM_INITIAL_BACKOFF = "1"
+  HINDSIGHT_API_LLM_MAX_BACKOFF = "5"
+  HINDSIGHT_API_LLM_TIMEOUT = "180"
+
+  HINDSIGHT_API_LLM_1_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_1_MODEL = "nvidia/nemotron-3.5-lightning:free"
+  HINDSIGHT_API_LLM_2_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_2_MODEL = "dots-studio/dots-3-note-preview:free"
+
+# All Hindsight state that must survive a restart/redeploy: the embedded
+# PostgreSQL cluster, its WAL, and pg0's cached server distribution.
+[[mounts]]
+  source = "hindsight_data"
+  destination = "/home/hindsight/.pg0"
+
+# No [[http_service]] and no [[checks]] on purpose. A check that fires while the
+# first boot is still unpacking PostgreSQL / loading models would put the machine
+# into a restart loop that never finishes initialising. Liveness comes from the
+# entrypoint itself: /app/start-all.sh exits non-zero when the API fails to come
+# up, which Fly treats as a crash and restarts. Memory-service health is
+# surfaced where it is actionable — OmniRoute's GET /api/memory/backends.
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2048mb"
