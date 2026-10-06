@@ -127,6 +127,18 @@ fly deploy --config deploy/fly/hindsight.fly.toml
 fly deploy --config deploy/fly/omniroute.fly.toml
 ```
 
+Two build notes, both already encoded in the manifests:
+
+- `[build] dockerfile` is resolved relative to the **config file**, not the
+  working directory, hence the `../../Dockerfile`. The build context is still the
+  repository root.
+- The Dockerfile's build defaults (6144 MB heap, 2 page-data workers) assume a
+  16 GB CI runner and are SIGKILLed on Fly's builder. `[build.args]` pins one
+  worker at a 3 GB heap, which fits.
+- If your Fly organisation is configured to default to a Depot builder, pass
+  `--depot=false`; otherwise `fly deploy` sits at "Waiting for depot builder..."
+  indefinitely. This deployment used the standard remote builder.
+
 The first Hindsight boot is slow: it downloads its embedded PostgreSQL
 distribution into the volume, runs migrations, then loads the local embedding and
 reranker models. Ten minutes is normal on a shared CPU. `HINDSIGHT_API_STARTUP_WAIT_SECONDS`

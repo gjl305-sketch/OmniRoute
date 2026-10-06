@@ -16,10 +16,21 @@ app = "omniroute-memory"
 primary_region = "ord"
 
 [build]
-  dockerfile = "Dockerfile"
+  # `fly` resolves this relative to the *config file*, not the working directory,
+  # and the build context stays the repository root. Hence the `../../`.
+  dockerfile = "../../Dockerfile"
   # runner-base is the lean HTTP + dashboard image upstream publishes
   # (docker-compose.yml:103, docker-publish.yml:192). No browser sidecar needed.
   target = "runner-base"
+
+  # The Next.js production build is the memory-hungry part. The Dockerfile
+  # defaults (6144 MB heap, 2 workers) are sized for a 16 GB CI runner and were
+  # SIGKILLed on Fly's builder. One page-data worker at a 3 GB heap fits.
+  # Raise these together with the builder, not independently: every page-data
+  # worker inherits OMNIROUTE_BUILD_MEMORY_MB, so the ceiling is per process.
+  [build.args]
+    OMNIROUTE_BUILD_WORKERS = "1"
+    OMNIROUTE_BUILD_MEMORY_MB = "3072"
 
 [env]
   NODE_ENV = "production"

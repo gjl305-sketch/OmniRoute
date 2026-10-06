@@ -1,0 +1,85 @@
+# Build and publish the OmniRoute image for the Fly deployment.
+#
+# WHY THIS EXISTS
+# The Next.js production build for this codebase needs more memory than either
+# place we can build it otherwise:
+#
+#   * Fly's remote builder    — the build daemon is OOM-killed mid-build
+#                               ("Next.js build worker exited with ... SIGKILL",
+#                               followed by the builder connection dropping with
+#                               "unable to upgrade to h2c, received 500").
+#   * the operator's machine  — 8 GB total RAM, of which Docker Desktop is
+#                               allotted ~3.9 GB; the build needs several GB per
+#                               process (see the ARG notes in Dockerfile).
+#
+# A GitHub-hosted runner has the memory this build is actually sized for (the
+# Dockerfile's own comments calibrate `OMNIROUTE_BUILD_MEMORY_MB` /
+# `OMNIROUTE_BUILD_WORKERS` against a 16 GB, 4 vCPU runner), and it turns the
+# deployed artifact into something reproducible and addressable by commit SHA.
+#
+# The image is built from committed source and pushed to GHCR, so the Fly
+# deployment is:
+#     fly deploy --config deploy/fly/omniroute.fly.toml \
+#       --image ghcr.io/<owner>/omniroute:sha-<commit>
+#
+# Nothing is deployed from here — Fly deployment stays manual, by design.
+
+name: publish-fly-image
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "feat/hindsight-memory-backend"
+    paths:
+      - "src/**"
+      - "open-sse/**"
+      - "packages/**"
+      - "public/**"
+      - "scripts/build/**"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.mjs"
+      - ".github/workflows/publish-fly-image.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-fly-image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          # The lean HTTP + dashboard image; no browser sidecar needed.
+          target: runner-base
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/omniroute:sha-${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/omniroute:hindsight
+          build-args: |
+            OMNIROUTE_BUILD_WORKERS=1
+            OMNIROUTE_BUILD_MEMORY_MB=4096
+          cache-from: type=gha,scope=omniroute-runner-base
+          cache-to: type=gha,mode=max,scope=omniroute-runner-base
