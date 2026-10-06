@@ -23,14 +23,16 @@ primary_region = "ord"
   # (docker-compose.yml:103, docker-publish.yml:192). No browser sidecar needed.
   target = "runner-base"
 
-  # The Next.js production build is the memory-hungry part. The Dockerfile
-  # defaults (6144 MB heap, 2 workers) are sized for a 16 GB CI runner and were
-  # SIGKILLed on Fly's builder. One page-data worker at a 3 GB heap fits.
-  # Raise these together with the builder, not independently: every page-data
-  # worker inherits OMNIROUTE_BUILD_MEMORY_MB, so the ceiling is per process.
+  # The Next.js production build is the memory-hungry part, and it is why this
+  # app is normally deployed from a published image rather than built here:
+  # the build needs a ~6 GB V8 heap per process (the Dockerfile raises its own
+  # default to 6144 MB for exactly that reason, and 4096 MB aborts with
+  # "FATAL ERROR: Ineffective mark-compacts near heap limit"), which exceeds
+  # Fly's remote builder. Keep these in step with the published image; see
+  # README.md for the image build + `fly deploy --image` path.
   [build.args]
     OMNIROUTE_BUILD_WORKERS = "1"
-    OMNIROUTE_BUILD_MEMORY_MB = "3072"
+    OMNIROUTE_BUILD_MEMORY_MB = "6144"
 
 [env]
   NODE_ENV = "production"

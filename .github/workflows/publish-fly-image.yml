@@ -79,7 +79,11 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/omniroute:sha-${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/omniroute:hindsight
           build-args: |
+            # The Dockerfile raises the default heap to 6144 MB because this
+            # codebase's Next 16 production pass OOMs a build worker at 4096 MB
+            # ("FATAL ERROR: Ineffective mark-compacts near heap limit").
+            # A GitHub-hosted runner has the RAM the default is calibrated for.
             OMNIROUTE_BUILD_WORKERS=1
-            OMNIROUTE_BUILD_MEMORY_MB=4096
+            OMNIROUTE_BUILD_MEMORY_MB=6144
           cache-from: type=gha,scope=omniroute-runner-base
           cache-to: type=gha,mode=max,scope=omniroute-runner-base

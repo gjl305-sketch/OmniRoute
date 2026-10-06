@@ -120,24 +120,43 @@ startup (and degrades cleanly if it is not there yet).
 ```powershell
 cd <repo root>
 
-# 1. Hindsight
+# 1. Hindsight — deployed straight from the pinned upstream image
 fly deploy --config deploy/fly/hindsight.fly.toml
 
-# 2. OmniRoute
-fly deploy --config deploy/fly/omniroute.fly.toml
+# 2. OmniRoute — deployed from the image published by .github/workflows/publish-fly-image.yml
+fly deploy --config deploy/fly/omniroute.fly.toml `
+  --image ghcr.io/<owner>/omniroute:hindsight
 ```
 
-Two build notes, both already encoded in the manifests:
+**Why OmniRoute is deployed as a published image instead of being built by Fly.**
+The Next.js production build for this codebase needs a ~6 GB V8 heap per
+process. The Dockerfile raises its own default to 6144 MB for exactly that reason,
+and lowering it aborts the build worker with
+`FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed`.
+
+- Fly's remote builder cannot hold it: the build dies mid-flight and takes the
+  build daemon with it (`builder ... connection error ... unable to upgrade to
+  h2c, received 500`).
+- The build cannot run on a typical operator workstation either — it needs
+  several GB per process, more than Docker Desktop commonly gets.
+
+The `publish-fly-image` workflow builds `runner-base` from committed source on a
+GitHub-hosted runner (the machine class the Dockerfile's build args are calibrated
+against) and pushes it to GHCR tagged with the commit SHA, so the deployed
+artifact is reproducible and addressable:
+
+```powershell
+fly deploy --config deploy/fly/omniroute.fly.toml `
+  --image ghcr.io/<owner>/omniroute:sha-<commit>
+```
+
+Two more build gotchas, already handled:
 
 - `[build] dockerfile` is resolved relative to the **config file**, not the
   working directory, hence the `../../Dockerfile`. The build context is still the
   repository root.
-- The Dockerfile's build defaults (6144 MB heap, 2 page-data workers) assume a
-  16 GB CI runner and are SIGKILLed on Fly's builder. `[build.args]` pins one
-  worker at a 3 GB heap, which fits.
-- If your Fly organisation is configured to default to a Depot builder, pass
-  `--depot=false`; otherwise `fly deploy` sits at "Waiting for depot builder..."
-  indefinitely. This deployment used the standard remote builder.
+- If your Fly organisation defaults to a Depot builder, `fly deploy` can sit at
+  "Waiting for depot builder..." indefinitely; pass `--depot=false`.
 
 The first Hindsight boot is slow: it downloads its embedded PostgreSQL
 distribution into the volume, runs migrations, then loads the local embedding and
