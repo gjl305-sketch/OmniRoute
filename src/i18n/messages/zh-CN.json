@@ -1324,7 +1324,10 @@
       "open": "打开",
       "close": "关闭"
     },
-    "noResults": "没有结果"
+    "noResults": "没有结果",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhook",

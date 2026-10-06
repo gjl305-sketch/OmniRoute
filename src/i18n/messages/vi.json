@@ -1324,7 +1324,10 @@
       "open": "mở",
       "close": "đóng"
     },
-    "noResults": "Không có kết quả"
+    "noResults": "Không có kết quả",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhook",

@@ -1324,7 +1324,10 @@
       "open": "ochish",
       "close": "yopish"
     },
-    "noResults": "Natijalar yo‘q"
+    "noResults": "Natijalar yo‘q",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Vebhuklar",

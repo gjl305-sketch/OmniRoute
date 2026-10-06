@@ -1324,7 +1324,10 @@
       "open": "فتح",
       "close": "إغلاق"
     },
-    "noResults": "لا توجد نتائج"
+    "noResults": "لا توجد نتائج",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "خطافات الويب",

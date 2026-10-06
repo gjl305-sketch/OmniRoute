@@ -1324,7 +1324,10 @@
       "open": "άνοιγμα",
       "close": "κλείσιμο"
     },
-    "noResults": "Δεν βρέθηκαν αποτελέσματα"
+    "noResults": "Δεν βρέθηκαν αποτελέσματα",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhooks",

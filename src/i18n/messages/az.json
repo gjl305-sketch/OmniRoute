@@ -1324,7 +1324,10 @@
       "open": "açıq",
       "close": "bağla"
     },
-    "noResults": "Heç bir nəticə yoxdur"
+    "noResults": "Heç bir nəticə yoxdur",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Vebhuklar",

@@ -1324,7 +1324,10 @@
       "open": "کھولیں",
       "close": "بند کریں"
     },
-    "noResults": "کوئی نتائج نہیں"
+    "noResults": "کوئی نتائج نہیں",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "ویب ہکس",

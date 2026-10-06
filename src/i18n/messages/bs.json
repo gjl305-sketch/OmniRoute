@@ -1324,7 +1324,10 @@
       "open": "otvori",
       "close": "zatvori"
     },
-    "noResults": "Nema rezultata"
+    "noResults": "Nema rezultata",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhookovi",

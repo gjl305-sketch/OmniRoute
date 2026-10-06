@@ -1324,7 +1324,10 @@
       "open": "Oscail",
       "close": "Dún"
     },
-    "noResults": "Gan torthaí"
+    "noResults": "Gan torthaí",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Crúcaí gréasáin",

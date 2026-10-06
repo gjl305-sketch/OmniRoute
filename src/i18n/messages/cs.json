@@ -1324,7 +1324,10 @@
       "open": "otevřít",
       "close": "zavřít"
     },
-    "noResults": "Žádné výsledky"
+    "noResults": "Žádné výsledky",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhooky",

@@ -1324,7 +1324,10 @@
       "open": "mepee",
       "close": "mechie"
     },
-    "noResults": "Enweghị nsonaazụ"
+    "noResults": "Enweghị nsonaazụ",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Nko weebụ",

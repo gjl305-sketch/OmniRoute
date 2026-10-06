@@ -1324,7 +1324,10 @@
       "open": "բացել",
       "close": "փակել"
     },
-    "noResults": "Արդյունքներ չկան"
+    "noResults": "Արդյունքներ չկան",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Վեբհուկներ",

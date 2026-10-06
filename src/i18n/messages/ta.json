@@ -1324,7 +1324,10 @@
       "open": "திறக்கவும்",
       "close": "மூடு"
     },
-    "noResults": "எந்த முடிவுகளும் இல்லை"
+    "noResults": "எந்த முடிவுகளும் இல்லை",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "வெப்ஹூக்ஸ்",

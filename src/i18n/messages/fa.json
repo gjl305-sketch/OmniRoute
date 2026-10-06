@@ -1324,7 +1324,10 @@
       "open": "باز کردن",
       "close": "بستن"
     },
-    "noResults": "هیچ نتیجه‌ای یافت نشد"
+    "noResults": "هیچ نتیجه‌ای یافت نشد",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "وب هوک ها",

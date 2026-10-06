@@ -1324,7 +1324,10 @@
       "open": "ဖွင့်ရန်",
       "close": "ပိတ်ရန်"
     },
-    "noResults": "ရလဒ်မရှိပါ"
+    "noResults": "ရလဒ်မရှိပါ",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "ဝဘ်ဟုတ်များ",

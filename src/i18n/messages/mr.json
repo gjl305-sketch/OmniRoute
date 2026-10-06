@@ -1324,7 +1324,10 @@
       "open": "उघडा",
       "close": "बंद करा"
     },
-    "noResults": "कोणतेही परिणाम नाहीत"
+    "noResults": "कोणतेही परिणाम नाहीत",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "वेबहुक",

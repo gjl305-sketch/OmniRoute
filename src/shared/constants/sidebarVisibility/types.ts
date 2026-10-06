@@ -114,6 +114,11 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "docs",
   "issues",
   "changelog",
+  // Companions — the sibling web UIs OmniRoute is deployed alongside. They are
+  // external links (new tab), listed here so the sidebar-preset machinery treats
+  // them like any other entry.
+  "fibstation",
+  "hermes-dashboard",
 ] as const;
 
 export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
@@ -134,6 +139,7 @@ export type SidebarSectionId =
   | "agentic-features"
   | "other-features"
   | "configuration"
+  | "companions"
   | "help";
 
 export interface SidebarItemDefinition {

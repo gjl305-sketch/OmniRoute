@@ -1324,7 +1324,10 @@
       "open": "atidaryti",
       "close": "uždaryti"
     },
-    "noResults": "Rezultatų nerasta"
+    "noResults": "Rezultatų nerasta",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhookai",

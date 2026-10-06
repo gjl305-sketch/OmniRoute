@@ -1324,7 +1324,10 @@
       "open": "отвори",
       "close": "затвори"
     },
-    "noResults": "Нема резултата"
+    "noResults": "Нема резултата",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Веб-куке",

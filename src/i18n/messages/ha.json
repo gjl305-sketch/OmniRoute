@@ -1324,7 +1324,10 @@
       "open": "buɗe",
       "close": "rufe"
     },
-    "noResults": "Babu sakamako"
+    "noResults": "Babu sakamako",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Ƙugiyoyin yanar gizo",

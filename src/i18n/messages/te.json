@@ -1324,7 +1324,10 @@
       "open": "తిరిగి తెరువు",
       "close": "మూసివేయండి"
     },
-    "noResults": "ఫలితాలు లేవు"
+    "noResults": "ఫలితాలు లేవు",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "వెబ్‌బూక్స్",

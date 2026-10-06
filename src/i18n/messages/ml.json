@@ -1324,7 +1324,10 @@
       "open": "തുറക്കുക",
       "close": "അടയ്ക്കുക"
     },
-    "noResults": "ഫലങ്ങളൊന്നുമില്ല"
+    "noResults": "ഫലങ്ങളൊന്നുമില്ല",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "വെബ്ഹുക്കുകൾ",

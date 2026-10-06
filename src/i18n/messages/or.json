@@ -1324,7 +1324,10 @@
       "open": "ଖୋଲନ୍ତୁ",
       "close": "ବନ୍ଦ କରନ୍ତୁ"
     },
-    "noResults": "କୌଣସି ଫଳାଫଳ ନାହିଁ"
+    "noResults": "କୌଣସି ଫଳାଫଳ ନାହିଁ",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "ୱେବହୁକ୍ଗୁଡ଼ିକ",

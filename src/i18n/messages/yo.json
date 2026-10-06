@@ -1324,7 +1324,10 @@
       "open": "ṣí",
       "close": "pa"
     },
-    "noResults": "Kò sí àbájáde"
+    "noResults": "Kò sí àbájáde",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Àwọn Webhook",

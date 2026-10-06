@@ -1324,7 +1324,10 @@
       "open": "buksan",
       "close": "isara"
     },
-    "noResults": "Walang resulta"
+    "noResults": "Walang resulta",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Mga Webhook",

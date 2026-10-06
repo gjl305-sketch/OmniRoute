@@ -1324,7 +1324,10 @@
       "open": "ખોલો",
       "close": "બંધ કરો"
     },
-    "noResults": "કોઈ પરિણામો નથી"
+    "noResults": "કોઈ પરિણામો નથી",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "વેબહુક્સ",

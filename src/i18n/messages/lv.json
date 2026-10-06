@@ -1324,7 +1324,10 @@
       "open": "atvērt",
       "close": "aizvērt"
     },
-    "noResults": "Nav rezultātu"
+    "noResults": "Nav rezultātu",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Tīmekļa aizķeres",

@@ -1324,7 +1324,10 @@
       "open": "abrir",
       "close": "cerrar"
     },
-    "noResults": "Sin resultados"
+    "noResults": "Sin resultados",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Ganchos web",

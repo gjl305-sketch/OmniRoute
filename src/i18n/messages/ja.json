@@ -1324,7 +1324,10 @@
       "open": "開く",
       "close": "閉じる"
     },
-    "noResults": "結果がありません"
+    "noResults": "結果がありません",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhook",

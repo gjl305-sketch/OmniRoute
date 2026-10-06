@@ -1324,7 +1324,10 @@
       "open": "විවෘත කරන්න",
       "close": "වසන්න"
     },
-    "noResults": "ප්රතිඵල නොමැත"
+    "noResults": "ප්රතිඵල නොමැත",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "වෙබ්හුක්",

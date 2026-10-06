@@ -789,6 +789,38 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
   },
 ];
 
+/**
+ * Sibling web UIs, reached as external links (Sidebar opens `external` items with
+ * `target="_blank"`). Labels come from `labelFallback`/`subtitleFallback` rather
+ * than catalogue keys, because these entries are deployment- or workstation-
+ * specific and must not force 67 locale edits.
+ */
+const COMPANION_ITEMS: readonly SidebarItemDefinition[] = [
+  {
+    id: "fibstation",
+    href: "https://fibstation-equities.fly.dev",
+    i18nKey: "fibstation",
+    labelFallback: "FibStation",
+    subtitleKey: "fibstationSubtitle",
+    subtitleFallback: "Trading deck (authoritative)",
+    icon: "candlestick_chart",
+    external: true,
+  },
+  {
+    // Hermes binds its dashboard to loopback only (hermes_cli/web_server.py
+    // defaults to 127.0.0.1:9119), so this link works from the machine running
+    // Hermes, not from every client of this dashboard.
+    id: "hermes-dashboard",
+    href: "http://127.0.0.1:9119",
+    i18nKey: "hermesDashboard",
+    labelFallback: "Hermes",
+    subtitleKey: "hermesDashboardSubtitle",
+    subtitleFallback: "Dashboard (local, 127.0.0.1:9119)",
+    icon: "smart_toy",
+    external: true,
+  },
+];
+
 const HELP_ITEMS: readonly SidebarItemDefinition[] = [
   {
     id: "docs",
@@ -878,6 +910,12 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     titleKey: "configurationSection",
     titleFallback: "Configuration",
     children: CONFIGURATION_ITEMS,
+  },
+  {
+    id: "companions",
+    titleKey: "companionsSection",
+    titleFallback: "Companions",
+    children: COMPANION_ITEMS,
   },
   {
     id: "help",

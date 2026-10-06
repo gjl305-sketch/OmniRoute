@@ -1324,7 +1324,10 @@
       "open": "열기",
       "close": "닫기"
     },
-    "noResults": "결과가 없습니다"
+    "noResults": "결과가 없습니다",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "웹훅",

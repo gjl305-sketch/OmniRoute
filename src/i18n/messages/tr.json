@@ -1324,7 +1324,10 @@
       "open": "açık",
       "close": "kapat"
     },
-    "noResults": "Sonuç yok"
+    "noResults": "Sonuç yok",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Web kancaları",

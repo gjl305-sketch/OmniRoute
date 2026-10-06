@@ -1324,7 +1324,10 @@
       "open": "otwórz",
       "close": "zamknij"
     },
-    "noResults": "Brak wyników"
+    "noResults": "Brak wyników",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhooki",

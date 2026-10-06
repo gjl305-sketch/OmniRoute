@@ -1324,7 +1324,10 @@
       "open": "გახსნა",
       "close": "დახურვა"
     },
-    "noResults": "შედეგები ვერ მოიძებნა"
+    "noResults": "შედეგები ვერ მოიძებნა",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "ვებჰუკები",

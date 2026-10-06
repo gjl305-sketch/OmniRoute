@@ -1324,7 +1324,10 @@
       "open": "fungua",
       "close": "funga"
     },
-    "noResults": "Hakuna matokeo"
+    "noResults": "Hakuna matokeo",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Viboko vya mtandao",

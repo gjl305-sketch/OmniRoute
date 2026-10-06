@@ -1324,7 +1324,10 @@
       "open": "iftaħ",
       "close": "agħlaq"
     },
-    "noResults": "Ebda riżultat"
+    "noResults": "Ebda riżultat",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhooks",

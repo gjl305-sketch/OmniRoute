@@ -1324,7 +1324,10 @@
       "open": "ክፈት",
       "close": "ዝጋ"
     },
-    "noResults": "ምንም ውጤት የለም"
+    "noResults": "ምንም ውጤት የለም",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "የድር መንጠቆዎች",

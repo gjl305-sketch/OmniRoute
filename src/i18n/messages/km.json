@@ -1324,7 +1324,10 @@
       "open": "បើក",
       "close": "បិទ"
     },
-    "noResults": "គ្មានលទ្ធផល"
+    "noResults": "គ្មានលទ្ធផល",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhooks",

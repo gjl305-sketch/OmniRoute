@@ -1324,7 +1324,10 @@
       "open": "öppna",
       "close": "stäng"
     },
-    "noResults": "Inga resultat"
+    "noResults": "Inga resultat",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhookar",

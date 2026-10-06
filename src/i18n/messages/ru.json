@@ -1324,7 +1324,10 @@
       "open": "открыть",
       "close": "закрыть"
     },
-    "noResults": "Нет результатов"
+    "noResults": "Нет результатов",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Вебхуки",

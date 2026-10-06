@@ -1324,7 +1324,10 @@
       "open": "ava",
       "close": "sulge"
     },
-    "noResults": "Tulemusi pole"
+    "noResults": "Tulemusi pole",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Veebihaagid",

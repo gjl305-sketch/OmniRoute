@@ -1324,7 +1324,10 @@
       "open": "odpri",
       "close": "zapri"
     },
-    "noResults": "Ni rezultatov"
+    "noResults": "Ni rezultatov",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Spletni kavlji",

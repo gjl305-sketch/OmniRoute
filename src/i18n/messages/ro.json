@@ -1324,7 +1324,10 @@
       "open": "deschide",
       "close": "închide"
     },
-    "noResults": "Niciun rezultat"
+    "noResults": "Niciun rezultat",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhook-uri",

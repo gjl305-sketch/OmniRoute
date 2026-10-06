@@ -1324,7 +1324,10 @@
       "open": "megnyitás",
       "close": "bezárás"
     },
-    "noResults": "Nincs találat"
+    "noResults": "Nincs találat",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "Webhookok",

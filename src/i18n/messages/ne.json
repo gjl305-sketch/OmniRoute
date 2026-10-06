@@ -1324,7 +1324,10 @@
       "open": "खोल्नुहोस्",
       "close": "बन्द गर्नुहोस्"
     },
-    "noResults": "कुनै परिणाम छैन"
+    "noResults": "कुनै परिणाम छैन",
+    "companionsSection": "Companions",
+    "fibstation": "FibStation",
+    "hermesDashboard": "Hermes"
   },
   "webhooks": {
     "title": "वेबहुकहरू",
