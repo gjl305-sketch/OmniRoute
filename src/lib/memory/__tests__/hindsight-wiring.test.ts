@@ -459,4 +459,16 @@ describe("MemoryManager default state", () => {
   test("is back to sqlite after the fallback suite", () => {
     expect(memoryManager.getRegisteredBackends().find((b) => b.isPrimary)?.id).toBe("sqlite");
   });
+
+  test("is anchored on globalThis so separate bundles share one registry", () => {
+    // Next.js emits the instrumentation hook and route handlers as separate
+    // bundles; a module-scoped instance would give each its own empty registry.
+    const store = globalThis as typeof globalThis & {
+      __omnirouteMemoryManager__?: unknown;
+    };
+    expect(store.__omnirouteMemoryManager__).toBe(memoryManager);
+    expect(memoryManager.getRegisteredBackends()).toContainEqual(
+      expect.objectContaining({ id: "sqlite" })
+    );
+  });
 });

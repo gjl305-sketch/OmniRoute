@@ -14,8 +14,21 @@ import type { Memory } from "./types";
 const log = logger("MEMORY_MANAGER");
 type BackendRegistry = Map<string, MemoryBackend>;
 
+/**
+ * Process-wide anchor for the singleton.
+ *
+ * A module-scoped `static instance` is NOT process-wide here: the Next.js
+ * standalone build emits the instrumentation hook and individual route handlers
+ * as separate bundles, so each can carry its own copy of this module. That made
+ * the registry invisible across the boundary — instrumentation registered
+ * Hindsight and configured it primary, while `/api/memory/*` saw a fresh
+ * registry containing only the import-time SQLite backend and resolved
+ * `primary: "sqlite"`. Anchoring on `globalThis` keeps one registry per process,
+ * which is what the backend abstraction has always assumed.
+ */
+const GLOBAL_MANAGER_KEY = "__omnirouteMemoryManager__";
+
 class MemoryManager {
-  private static instance: MemoryManager;
   private backends: BackendRegistry = new Map();
   private primaryBackendId: string = "sqlite";
   private fallbackBackendIds: string[] = [];
@@ -24,10 +37,13 @@ class MemoryManager {
   private constructor() {}
 
   static getInstance(): MemoryManager {
-    if (!MemoryManager.instance) {
-      MemoryManager.instance = new MemoryManager();
+    const store = globalThis as typeof globalThis & {
+      [GLOBAL_MANAGER_KEY]?: MemoryManager;
+    };
+    if (!store[GLOBAL_MANAGER_KEY]) {
+      store[GLOBAL_MANAGER_KEY] = new MemoryManager();
     }
-    return MemoryManager.instance;
+    return store[GLOBAL_MANAGER_KEY];
   }
 
   /** Register a backend implementation */
