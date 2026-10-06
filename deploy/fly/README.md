@@ -399,3 +399,21 @@ fly machine restart <id> -a omniroute-hindsight
   retained document. Both are intentional and covered by tests.
 - `GET /documents` does not return the stored text, so a listing hydrates each row
   from `GET /documents/{id}` — bounded to 100 rows at concurrency 4.
+
+## Consumers of the deployed gateway
+
+The deployment is a provider for more than its own dashboard. Two consumers are
+wired to it, and both are documented where their configuration lives:
+
+- **FibStation** (`fibstation-equities`) calls `POST /v1/chat/completions` on the
+  server AI route chain. Its activation variables are `OMNIROUTE_ENABLED` +
+  `OMNIROUTE_BASE_URL` (in `hub/fly-fibstation.toml`) plus the `OMNIROUTE_API_KEY`
+  Fly secret. Note that a stale secret fails closed with a 401 rather than
+  degrading quietly, so check the credential before blaming the route.
+- **Hermes** uses a second provider slug so its existing loopback lane keeps
+  working. See [hermes-provider.md](hermes-provider.md).
+
+Give each consumer its own `policy:auto-best-free` gateway key. Attribution per
+consumer is the only way to tell whose spend a call belongs to, and the scope is
+what stops a consumer from spending metered credit by accident.
+
