@@ -109,6 +109,47 @@ Hindsight's own API-key auth in front of it first
 (`HINDSIGHT_API_TENANT_EXTENSION` + `HINDSIGHT_API_TENANT_API_KEY`; auth is
 disabled by default, and `/health` and `/metrics` stay open regardless).
 
+**3. OmniRoute's bind comes from `OMNIROUTE_HOSTNAME`.** The standalone launcher
+overrides the child's `HOSTNAME` and defaults it back to `0.0.0.0`
+(`scripts/build/runtime-env.mjs:177`), so setting `HOSTNAME`/`HOST`/`BIND` alone is
+silently ignored. Only `OMNIROUTE_HOSTNAME` changes the bind. This matters if you
+want Hindsight to call OmniRoute (see the chain note below); the deployed value is
+`::`, and public ingress is verified unaffected.
+
+## Hindsight's LLM chain
+
+Retain, reflect and consolidation call an LLM, so `hindsight.fly.toml` pins a
+failover chain. Two rules learned the hard way:
+
+- **Every model id must be verified reachable before it goes in.** Failover
+  rescues *transient* failures. It cannot rescue a retired model: the original
+  configuration led with `minimax/minimax-m3:free`, which now returns 404, and
+  every retain failed outright. Indices must also be contiguous from 1 —
+  Hindsight stops scanning at the first unset `_PROVIDER`, so a gap silently
+  truncates the chain.
+- **The cheapest models are not always the right lead.** The two free models
+  answer quickly in isolation but emit prose instead of the strict JSON that
+  `HINDSIGHT_API_LLM_STRICT_SCHEMA=true` requires, so extraction retries; a retain
+  led by them ran past the client's timeout, which then fell back to SQLite. They
+  are kept as failovers, where they cost nothing and only run on an error.
+
+Point the OmniRoute-side retain timeout at Hindsight's own budget, not below it:
+
+```powershell
+# backendConfigs.hindsight.retainTimeout, via PUT /api/settings/memory
+# Hindsight keeps working after the client stops waiting, so a client that gives
+# up early can commit server-side while MemoryManager falls back to SQLite —
+# the same memory in two stores, visible only in one. Default is 300000.
+```
+
+**opencode's free tier is not reachable this way.** OmniRoute does expose opencode
+models (as `oc/…`, including `oc/deepseek-v4-flash-free`, `oc/mimo-v2.5-free`), and
+Hindsight can now reach OmniRoute over 6PN, but calling them returns
+`403 "OpenCode's free tier can only be used from within OpenCode"` — the provider
+gates free usage to the OpenCode client itself. Other `oc/*` models need an
+authorised opencode connection (`401 No active credentials for provider: opencode`).
+
+
 
 ## Secrets
 
