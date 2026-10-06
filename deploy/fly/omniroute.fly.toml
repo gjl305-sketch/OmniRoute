@@ -31,8 +31,8 @@ primary_region = "ord"
   # Fly's remote builder. Keep these in step with the published image; see
   # README.md for the image build + `fly deploy --image` path.
   [build.args]
-    OMNIROUTE_BUILD_WORKERS = "1"
-    OMNIROUTE_BUILD_MEMORY_MB = "6144"
+    OMNIROUTE_BUILD_WORKERS = "2"
+    OMNIROUTE_BUILD_MEMORY_MB = "12288"
 
 [env]
   NODE_ENV = "production"

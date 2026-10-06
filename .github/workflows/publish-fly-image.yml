@@ -54,7 +54,9 @@ concurrency:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    # Mirrors .github/workflows/docker-publish.yml:138, which is the
+    # configuration upstream actually ships images with.
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -80,17 +82,19 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/omniroute:hindsight
           # NB: a YAML block scalar has no comments — every line below is passed
           # verbatim to docker as a build arg, so keep it to NAME=value pairs.
-          # A stray explanatory line here was itself sent as a build argument and
-          # corrupted CIRCLE_NODE_TOTAL, which is what made the runner OOM.
           #
-          # OMNIROUTE_BUILD_WORKERS sets CIRCLE_NODE_TOTAL; Next derives its
-          # page-data worker count from it (workers = N-1), so 2 means one worker
-          # and two processes. It must stay a bare integer.
-          # OMNIROUTE_BUILD_MEMORY_MB is the Dockerfile's own default, raised
-          # from 4096 because this codebase's Next 16 production pass OOMs a
-          # build worker at 4096 MB.
+          # These are the values upstream's own image build uses
+          # (.github/workflows/docker-publish.yml:194-196). They matter:
+          #   * 12288 MB heap — the build reaches ~5.9 GB and fails to compact
+          #     below that ("FATAL ERROR: Ineffective mark-compacts near heap
+          #     limit"), and docker-publish.yml:130 records that a smaller hosted
+          #     runner dies with ResourceExhausted.
+          #   * Turbopack off — Dockerfile's documented escape hatch; upstream
+          #     hit TurbopackInternalError on the amd64 image build.
+          # OMNIROUTE_BUILD_WORKERS is deliberately left at the Dockerfile
+          # default (2 -> one page-data worker).
           build-args: |
-            OMNIROUTE_BUILD_WORKERS=2
-            OMNIROUTE_BUILD_MEMORY_MB=6144
+            OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
           cache-from: type=gha,scope=omniroute-runner-base
           cache-to: type=gha,mode=max,scope=omniroute-runner-base
