@@ -27,6 +27,7 @@ import { memoryManager } from "../manager";
 import { HindsightBackend } from "../hindsightBackend";
 import { KNOWN_BACKENDS } from "../genericBackend";
 import { isRemotePrimaryBackend, retrieveViaPrimaryBackend } from "../durable";
+import { retrieveMemoriesLocal } from "../retrieval";
 import type { MemoryBackend } from "../backend";
 import type { MemorySettings } from "../settings";
 import { DEFAULT_MEMORY_SETTINGS } from "../settings";
@@ -360,9 +361,10 @@ describe("durable retrieval seam", () => {
   const ids = ["remote-search-fake"];
 
   function remoteBackend(searchImpl: () => Promise<any[]>): MemoryBackend {
-    return {
+    const backend: MemoryBackend & { searchCalls: number } = {
       id: ids[0],
       displayName: "Remote",
+      searchCalls: 0,
       async create() {
         throw new Error("not used");
       },
@@ -378,11 +380,15 @@ describe("durable retrieval seam", () => {
       async list() {
         return { data: [], total: 0, byType: {} };
       },
-      search: searchImpl,
+      search(config) {
+        backend.searchCalls++;
+        return searchImpl(config);
+      },
       async health() {
         return { ok: true, latencyMs: 1 };
       },
     };
+    return backend;
   }
 
   afterEach(() => {
@@ -450,6 +456,26 @@ describe("durable retrieval seam", () => {
     // inherits that contract so a memory outage can never fail a request.
     const results = await retrieveViaPrimaryBackend("k", { query: "q" });
     expect(results).toEqual([]);
+  });
+
+  test("the local engine never delegates back to the remote backend", async () => {
+    const remote = remoteBackend(async () => {
+      throw new Error("must not be reached");
+    }) as MemoryBackend & { searchCalls: number };
+    memoryManager.register(remote);
+    memoryManager.configure(ids[0], ["sqlite"]);
+
+    // Regression: SQLiteBackend.search (the fallback) must run the local engine.
+    // When it called retrieveMemories() instead, MemoryManager ran
+    // primary -> fallback -> retrieveMemories -> primary ... and a chat request
+    // hung until the client gave up whenever the remote backend was down.
+    try {
+      await retrieveMemoriesLocal("k", { query: "q" });
+    } catch {
+      // The local DB may not be initialised in this suite; the assertion below
+      // is about delegation, not about the engine's own result.
+    }
+    expect(remote.searchCalls).toBe(0);
   });
 });
 

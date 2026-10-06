@@ -259,11 +259,46 @@ export async function retrieveMemories(
   apiKeyId: string,
   config: RetrievalOptions = {}
 ): Promise<Memory[]> {
+  // Durable-memory seam: when a backend other than SQLite is primary, durable
+  // memories live there and must be read back from there. Returns null (and this
+  // falls through to the local hybrid engine) for the default SQLite primary, for
+  // recency-only requests, and whenever the remote backend has nothing to say.
+  const durable = await retrieveViaPrimaryBackend(apiKeyId, {
+    query: config.query,
+    maxTokens: config.maxTokens,
+    strategy: config.retrievalStrategy,
+  });
+  if (durable !== null) {
+    log.info("memory.retrieval.durable", { apiKeyId, results: durable.length });
+    return durable;
+  }
+
   const result = await retrieveMemoriesInternal(apiKeyId, config);
   if (result.length > 0) {
     recordMemoryAccess(result.map((m) => m.id));
   }
   return result;
+}
+
+/**
+ * The local hybrid engine, with no durable-backend delegation.
+ *
+ * `SQLiteBackend.search()` MUST use this rather than `retrieveMemories()`.
+ * Because `retrieveMemories()` delegates to MemoryManager whenever a non-SQLite
+ * backend is primary, having the SQLite backend call it closes a cycle:
+ *
+ *   retrieveMemories -> MemoryManager.search -> primary (Hindsight) fails
+ *                    -> fallback SQLiteBackend.search -> retrieveMemories -> ...
+ *
+ * Observed live: with Hindsight stopped, a chat completion hung until the client
+ * gave up instead of degrading to the local engine. Calling the engine directly
+ * is also simply what "SQLite is the fallback" means.
+ */
+export async function retrieveMemoriesLocal(
+  apiKeyId: string,
+  config: RetrievalOptions = {}
+): Promise<Memory[]> {
+  return retrieveMemoriesInternal(apiKeyId, config);
 }
 
 async function retrieveMemoriesInternal(
@@ -290,20 +325,6 @@ async function retrieveMemoriesInternal(
 
   const maxTokens = Math.min(Math.max(normalizedConfig.maxTokens, 1), 8000);
   const strategy = normalizedConfig.retrievalStrategy;
-
-  // Durable-memory seam: when a backend other than SQLite is primary, durable
-  // memories live there and must be read back from there. Returns null (and this
-  // falls through to the local hybrid engine) for the default SQLite primary, for
-  // recency-only requests, and whenever the remote backend fails.
-  const durable = await retrieveViaPrimaryBackend(apiKeyId, {
-    query: config.query,
-    maxTokens,
-    strategy,
-  });
-  if (durable !== null) {
-    log.info("memory.retrieval.durable", { apiKeyId, results: durable.length });
-    return durable;
-  }
 
   const db = getDbInstance();
   // Plan 21 FAIL #2 fix: include "qdrant" in the tier union so that the

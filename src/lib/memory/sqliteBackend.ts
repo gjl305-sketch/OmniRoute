@@ -14,7 +14,7 @@ import type {
 } from "./backend";
 import { MemoryType } from "./types";
 import { createMemory, getMemory, updateMemory, deleteMemory, listMemories } from "./store";
-import { retrieveMemories } from "./retrieval";
+import { retrieveMemoriesLocal } from "./retrieval";
 
 const log = logger("SQLITE_BACKEND");
 
@@ -77,7 +77,10 @@ export class SQLiteBackend implements MemoryBackend {
   // ─── Search ───
 
   async search(config: SearchConfig): Promise<Memory[]> {
-    return retrieveMemories(config.apiKeyId, {
+    // Deliberately the non-delegating entry point: calling retrieveMemories()
+    // here would re-enter MemoryManager and loop whenever a remote backend is
+    // primary and this backend is its fallback.
+    return retrieveMemoriesLocal(config.apiKeyId, {
       query: config.query,
       maxTokens: config.maxTokens,
       retrievalStrategy: config.strategy ?? "hybrid",
