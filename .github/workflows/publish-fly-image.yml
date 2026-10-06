@@ -78,12 +78,19 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/omniroute:sha-${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/omniroute:hindsight
+          # NB: a YAML block scalar has no comments — every line below is passed
+          # verbatim to docker as a build arg, so keep it to NAME=value pairs.
+          # A stray explanatory line here was itself sent as a build argument and
+          # corrupted CIRCLE_NODE_TOTAL, which is what made the runner OOM.
+          #
+          # OMNIROUTE_BUILD_WORKERS sets CIRCLE_NODE_TOTAL; Next derives its
+          # page-data worker count from it (workers = N-1), so 2 means one worker
+          # and two processes. It must stay a bare integer.
+          # OMNIROUTE_BUILD_MEMORY_MB is the Dockerfile's own default, raised
+          # from 4096 because this codebase's Next 16 production pass OOMs a
+          # build worker at 4096 MB.
           build-args: |
-            # The Dockerfile raises the default heap to 6144 MB because this
-            # codebase's Next 16 production pass OOMs a build worker at 4096 MB
-            # ("FATAL ERROR: Ineffective mark-compacts near heap limit").
-            # A GitHub-hosted runner has the RAM the default is calibrated for.
-            OMNIROUTE_BUILD_WORKERS=1
+            OMNIROUTE_BUILD_WORKERS=2
             OMNIROUTE_BUILD_MEMORY_MB=6144
           cache-from: type=gha,scope=omniroute-runner-base
           cache-to: type=gha,mode=max,scope=omniroute-runner-base
