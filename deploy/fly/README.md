@@ -77,7 +77,38 @@ fly apps create omniroute-memory    --org personal
 
 fly volumes create hindsight_data  --region ord --size 5 -a omniroute-hindsight
 fly volumes create omniroute_data  --region ord --size 3 -a omniroute-memory
+
+# Public ingress is NOT allocated automatically on deploy; the app answers on
+# 6PN but not on the internet until you do this.
+fly ips allocate-v4 --shared -a omniroute-memory
+fly ips allocate-v6           -a omniroute-memory
 ```
+
+## Networking: two things that will bite
+
+**1. Fly's 6PN private network is IPv6-only.** A service that binds `0.0.0.0`
+creates an `AF_INET` socket only and is then unreachable from the other app, even
+though it answers on `127.0.0.1` inside its own container. That is exactly how
+this first deployed: Hindsight was healthy locally while every 6PN request from
+OmniRoute returned `ECONNREFUSED` against its `fdaa:...` address.
+`hindsight.fly.toml` therefore sets `HINDSIGHT_API_HOST = "::"`, which
+dual-stacks on Linux so loopback and 6PN both work. Confirm with the listener
+table rather than by assuming:
+
+```powershell
+fly ssh console -a omniroute-hindsight -C "cat /proc/net/tcp6"
+# expect a LISTEN on :::8888, not only a v4 entry for 8888
+```
+
+OmniRoute is only a *client* of that address and does not need to change its own
+bind, which is why its `HOSTNAME` stays `0.0.0.0`.
+
+**2. Hindsight has no `[http_service]` and no public IPs.** That is deliberate —
+nothing routes to 8888 or 9999 from the internet. If you ever add one, put
+Hindsight's own API-key auth in front of it first
+(`HINDSIGHT_API_TENANT_EXTENSION` + `HINDSIGHT_API_TENANT_API_KEY`; auth is
+disabled by default, and `/health` and `/metrics` stay open regardless).
+
 
 ## Secrets
 
@@ -167,19 +198,39 @@ finishes. Liveness comes from `/app/start-all.sh` exiting non-zero if the API fa
 which Fly treats as a crash, and memory-service health is reported by OmniRoute at
 `GET /api/memory/backends`.
 
-### Volume ownership (one-time, both apps)
+### Volume ownership and seeding the database (one-time)
 
-Fly volumes are created root-owned, but both images run as UID 1000. After the
-first deploy, fix ownership once per volume and restart:
+A Fly volume is created root-owned, but both images run as UID 1000. Fix
+ownership once per volume, and seed the migrated database **before** the app
+first opens it:
 
 ```powershell
-fly ssh console -a omniroute-hindsight -C "chown -R 1000:1000 /home/hindsight/.pg0"
-fly ssh console -a omniroute-memory    -C "chown -R 1000:1000 /data"
-fly machine restart <id> -a <app>
+# 1. Boot a throwaway machine that just holds the volume open.
+fly machine run -a omniroute-memory --region ord --detach `
+  -v omniroute_data:/data --entrypoint sleep python:3.10-slim 3600
+
+fly ssh console -a omniroute-memory -C "chown -R 1000:1000 /data"
+
+# 2. Upload the WAL-safe snapshot taken in the migration section.
+fly sftp put .\storage.sqlite /data/storage.sqlite -a omniroute-memory
+fly ssh console -a omniroute-memory -C "chown 1000:1000 /data/storage.sqlite"
+fly ssh console -a omniroute-memory -C "chmod 600 /data/storage.sqlite"
+# Verify the bytes end-to-end; a truncated upload is a silently corrupt database.
+fly ssh console -a omniroute-memory -C "sha256sum /data/storage.sqlite"
+
+# 3. Drop the throwaway machine BEFORE deploying, so `fly deploy` owns the app.
+fly machine destroy <temp-machine-id> -a omniroute-memory
 ```
 
-Skipping this shows up as `check-permissions.sh` warnings on OmniRoute and as
-pg0's explicit "Permission denied (os error 13)" pre-check on Hindsight.
+Seeding before first boot is preferable to importing into a running app: the
+import endpoint is behind management auth, and a fresh deployment has no
+management credential to present. If you do import into a running app instead,
+`POST /api/db-backups/import` validates integrity and takes a pre-import backup,
+but you must restart the machine afterwards.
+
+Skipping the ownership fix shows up as `check-permissions.sh` warnings on
+OmniRoute and as pg0's explicit "Permission denied (os error 13)" on Hindsight.
+
 
 ## Migrating an existing working configuration
 

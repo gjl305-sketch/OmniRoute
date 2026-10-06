@@ -24,7 +24,13 @@ primary_region = "ord"
   image = "ghcr.io/vectorize-io/hindsight:0.8.6"
 
 [env]
-  HINDSIGHT_API_HOST = "0.0.0.0"
+  # MUST be "::", not "0.0.0.0". Fly's 6PN private network is IPv6-only, and
+  # binding 0.0.0.0 makes uvicorn create an AF_INET socket only — the API then
+  # answers on 127.0.0.1:8888 but refuses the machine's fdaa:... address, which
+  # is exactly how this first deployed (OmniRoute saw ECONNREFUSED on every
+  # 6PN request while the container's own /health was healthy).
+  # "::" dual-stacks on Linux, so both loopback and 6PN keep working.
+  HINDSIGHT_API_HOST = "::"
   HINDSIGHT_API_PORT = "8888"
   HINDSIGHT_ENABLE_API = "true"
   # The bundled control plane is kept for inspecting stored memory. It listens on
