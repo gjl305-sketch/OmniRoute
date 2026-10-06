@@ -50,8 +50,45 @@ primary_region = "ord"
   # ── LLM chain (retain/reflect/consolidation) ───────────────────────────────
   # Provider + API key come from Fly secrets (HINDSIGHT_API_LLM_API_KEY and the
   # per-member keys below). Model ids are not secret and are pinned here.
+  #
+  # HINDSIGHT_API_LLM_MODEL is the first member; LLM_<n>_MODEL are the failovers.
+  # Indices MUST be contiguous from 1: Hindsight stops scanning at the first index
+  # whose _PROVIDER is unset (config.py::_parse_llm_members), so a gap silently
+  # truncates the chain.
+  #
+  # Every id below was probed against OpenRouter on 2026-10-05 and answered 200.
+  # Ordered cheapest-capable-first, with the free models as *failovers*:
+  #
+  #   deepseek-v4.1-flash           $0.003/M in, ~3.5s, honours strict JSON
+  #   ling-3.0-flash-fin            $0.042/M in, ~1.6s, concise
+  #   deepseek-v4-flash-0731        $0.005/M in
+  #   deepseek-v4-flash             $0.011/M in
+  #   qwen3.7-flash                 $0.03/M in
+  #   glm-5.3-flash                 $0.15/M in
+  #   nemotron-3.5-lightning:free   free
+  #   dots-3-note-preview:free      free
+  #   ling-3.0-flash-vl             $0.021/M in (vision variant, kept as a fallback)
+  #
+  # Why the FREE models are not first, despite being cheapest. Measured on this
+  # deployment: both free models answer quickly in isolation (~8s) but emit prose
+  # ("Let me analyse this text chunk carefully...") instead of the strict JSON that
+  # HINDSIGHT_API_LLM_STRICT_SCHEMA requires, so Hindsight retries and a retain led
+  # by them ran past 120s — past the OmniRoute-side retain timeout, which then fell
+  # back to SQLite and wrote the memory to the wrong store. They are excellent
+  # failovers (zero cost, and failover only runs when the cheap model errors), and
+  # a poor lead. Note the top three are all under $0.01/M input, so the cost
+  # difference is small in absolute terms.
+  #
+  # NOT included: thinkingmachines/inkling:free and inkling-small:free both return
+  # 403 "only available on agentic harnesses". A retired/blocked model is the one
+  # failure the failover chain cannot rescue, because it is not transient — the
+  # original deployment led with minimax/minimax-m3:free, which now 404s, and every
+  # retain failed outright. Re-probe before adding a member.
+  #
+  # opencode's free tier is not usable here either: routing it through OmniRoute
+  # returns 403 "OpenCode's free tier can only be used from within OpenCode".
   HINDSIGHT_API_LLM_PROVIDER = "openrouter"
-  HINDSIGHT_API_LLM_MODEL = "deepseek/deepseek-v4-flash"
+  HINDSIGHT_API_LLM_MODEL = "deepseek/deepseek-v4.1-flash"
   HINDSIGHT_API_LLM_STRATEGY = '{"mode":"failover"}'
   HINDSIGHT_API_LLM_STRICT_SCHEMA = "true"
   HINDSIGHT_API_LLM_EXTRA_BODY = '{"max_tokens":2000}'
@@ -62,9 +99,21 @@ primary_region = "ord"
   HINDSIGHT_API_LLM_TIMEOUT = "180"
 
   HINDSIGHT_API_LLM_1_PROVIDER = "openrouter"
-  HINDSIGHT_API_LLM_1_MODEL = "nvidia/nemotron-3.5-lightning:free"
+  HINDSIGHT_API_LLM_1_MODEL = "inclusionai/ling-3.0-flash-fin"
   HINDSIGHT_API_LLM_2_PROVIDER = "openrouter"
-  HINDSIGHT_API_LLM_2_MODEL = "dots-studio/dots-3-note-preview:free"
+  HINDSIGHT_API_LLM_2_MODEL = "deepseek/deepseek-v4-flash-0731"
+  HINDSIGHT_API_LLM_3_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_3_MODEL = "deepseek/deepseek-v4-flash"
+  HINDSIGHT_API_LLM_4_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_4_MODEL = "qwen/qwen3.7-flash"
+  HINDSIGHT_API_LLM_5_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_5_MODEL = "z-ai/glm-5.3-flash"
+  HINDSIGHT_API_LLM_6_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_6_MODEL = "nvidia/nemotron-3.5-lightning:free"
+  HINDSIGHT_API_LLM_7_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_7_MODEL = "dots-studio/dots-3-note-preview:free"
+  HINDSIGHT_API_LLM_8_PROVIDER = "openrouter"
+  HINDSIGHT_API_LLM_8_MODEL = "inclusionai/ling-3.0-flash-vl"
 
 # All Hindsight state that must survive a restart/redeploy: the embedded
 # PostgreSQL cluster, its WAL, and pg0's cached server distribution.

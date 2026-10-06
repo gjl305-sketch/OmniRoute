@@ -37,7 +37,19 @@ primary_region = "ord"
 [env]
   NODE_ENV = "production"
   PORT = "20128"
-  HOSTNAME = "0.0.0.0"
+  # MUST be "::" for the same reason Hindsight's host is: Fly's 6PN private
+  # network is IPv6-only, and an IPv4-only bind is unreachable from the other app.
+  # OmniRoute is normally only a *client* of Hindsight, but Hindsight's LLM chain
+  # has a member routed back through OmniRoute so it can reach the free `oc/*`
+  # models, and that direction needs this bind.
+  #
+  # NOTE the variable name. The standalone launcher overrides the child's
+  # HOSTNAME from OMNIROUTE_HOSTNAME and defaults it back to "0.0.0.0"
+  # (scripts/build/runtime-env.mjs:177), so setting HOSTNAME/HOST/BIND alone is
+  # silently ignored — which is exactly what happened on the first attempt. This
+  # is the only variable that changes the bind. Verified after the change: the
+  # public HTTPS endpoint keeps working and the machine listens on :::20128.
+  OMNIROUTE_HOSTNAME = "::"
   # Must equal the volume mount below. A mismatch writes the SQLite database and
   # the generated secrets into the ephemeral image layer (FLY_IO_DEPLOYMENT_GUIDE.md:191).
   DATA_DIR = "/data"

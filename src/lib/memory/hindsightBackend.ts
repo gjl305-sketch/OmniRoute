@@ -135,7 +135,15 @@ export interface HindsightBackendConfig {
   recallTimeout?: number;
   /**
    * Hard timeout for retain. Retain runs an LLM extraction pipeline
-   * synchronously, so it needs a much larger budget than reads. Default 120000.
+   * synchronously, so it needs a much larger budget than reads.
+   *
+   * Default 300000. It must comfortably exceed Hindsight's *own* budget, because
+   * Hindsight keeps working after the client stops waiting: give up early and the
+   * retain may still commit server-side while MemoryManager falls back to SQLite,
+   * producing the same memory in two stores with two different ids. Measured on
+   * the deployment: a chain led by verbose free models took >120 s and hit the old
+   * 120 s default, which is exactly that failure — the write landed in SQLite and
+   * was invisible to the Hindsight-backed listing.
    */
   retainTimeout?: number;
   /** Recall budget preset forwarded to Hindsight. Default `mid`. */
@@ -323,7 +331,7 @@ export class HindsightBackend implements MemoryBackend {
     this.bankId = config.bankId && config.bankId.trim() ? config.bankId.trim() : "omniroute";
     this.apiKey = config.apiKey;
     this.timeout = config.timeout ?? 15000;
-    this.retainTimeout = config.retainTimeout ?? 120000;
+    this.retainTimeout = config.retainTimeout ?? 300000;
     this.recallTimeout = config.recallTimeout ?? 30000;
     this.recallBudget = config.recallBudget ?? "mid";
     this.retainAsync = config.retainAsync ?? false;
